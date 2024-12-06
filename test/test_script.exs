@@ -1,6 +1,6 @@
 # Replace with your own implementation source files
 IEx.Helpers.c "beb.ex", "."
-IEx.Helpers.c "paxos.ex", "."
+IEx.Helpers.c "paxos.ex", "../lib/"
 
 # Do not modify the following ##########
 IEx.Helpers.c "test_harness.ex", "."
@@ -14,9 +14,9 @@ host = String.trim(to_string(:os.cmd('hostname -s')))
 
 test_suite = [
     # test case, configuration, number of times to run the case, description
-    # Use TestUtil.get_dist_config(host, n) to generate a multi-node configuration 
+    # Use TestUtil.get_dist_config(host, n) to generate a multi-node configuration
     # consisting of n processes, each one on a different node.
-    # Use TestUtil.get_local_config(n) to generate a single-node configuration 
+    # Use TestUtil.get_local_config(n) to generate a single-node configuration
     # consisting of n processes, all running on the same node.
     {&PaxosTest.run_simple/3, TestUtil.get_local_config(3), 10, "No failures, no concurrent ballots, 3 local procs"},
     {&PaxosTest.run_simple/3, TestUtil.get_dist_config(host, 3), 10, "No failures, no concurrent ballots, 3 nodes"},
@@ -55,17 +55,17 @@ test_suite = [
     {&PaxosTest.run_leader_crash_complex/3, TestUtil.get_local_config(11), 10, "Cascading failures of leaders and non-leaders, 11 local procs"},
 
     {&PaxosTest.run_leader_crash_complex_2/3, TestUtil.get_dist_config(host, 11), 10, "Cascading failures of leaders and non-leaders, random delays, 7 nodes"},
-    {&PaxosTest.run_leader_crash_complex_2/3, TestUtil.get_local_config(11), 10, "Cascading failures of leaders and non-leaders, random delays, 7 local procs"}, 
+    {&PaxosTest.run_leader_crash_complex_2/3, TestUtil.get_local_config(11), 10, "Cascading failures of leaders and non-leaders, random delays, 7 local procs"},
 ]
 
 
 Node.stop
 # Confusingly, Node.start fails if epmd is not running.
 # epmd can be started manually with "epmd -daemon" or
-# will start automatically whenever any Erlang VM is 
+# will start automatically whenever any Erlang VM is
 # started with --sname or --name option.
 Node.start(TestUtil.get_node(host), :shortnames)
-Enum.reduce(test_suite, length(test_suite), 
+Enum.reduce(test_suite, length(test_suite),
      fn ({func, config, n, doc}, acc) ->
         IO.puts(:stderr, "============")
         IO.puts(:stderr, "#{inspect doc}, #{inspect n} time#{if n > 1, do: "s", else: ""}")
@@ -73,9 +73,9 @@ Enum.reduce(test_suite, length(test_suite),
         for _ <- 1..n do
                 res = TestHarness.test(func, Enum.shuffle(Map.to_list(config)))
                 # IO.puts("#{inspect res}")
-                {vl, al, ll} = Enum.reduce(res, {[], [], []}, 
-                   fn 
-                      {_, _, s, v, a, {:message_queue_len, l}}, {vl, al, ll} -> 
+                {vl, al, ll} = Enum.reduce(res, {[], [], []},
+                   fn
+                      {_, _, s, v, a, {:message_queue_len, l}}, {vl, al, ll} ->
                         # if s not in [:killed, :none], do: {[v | vl], [a | al], [l | ll]},
                         if s not in [:killed], do: {[v | vl], [a | al], [l | ll]},
                         else: {vl, al, ll}
@@ -101,7 +101,7 @@ Enum.reduce(test_suite, length(test_suite),
                 end
         end
         IO.puts(:stderr, "============#{if acc > 1, do: "\n", else: ""}")
-        acc - 1 
+        acc - 1
      end)
 :os.cmd('/bin/rm -f *.beam')
 Node.stop
