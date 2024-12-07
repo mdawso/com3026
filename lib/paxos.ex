@@ -32,7 +32,7 @@ defmodule Paxos do
 
   # handle_propose function
   defp handle_propose(state, inst, value, from) do
-    # Implement Paxos proposal logic here
+    # Implement paxos logic here
     send(from, {:decision, value})
     state
   end
