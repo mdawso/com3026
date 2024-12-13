@@ -1,5 +1,4 @@
-# This is an implementation of the paxos algorithm for a bank account server  
-Based off the paper "Paxos Made Simple" by Leslie Lamport  
+# An implementation of the paxos algorithm for a bank account server in elixir 
 
 To get the newest version of elixir:  
 ```bash
