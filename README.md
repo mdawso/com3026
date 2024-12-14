@@ -7,4 +7,7 @@ sudo apt update
 sudo apt install elixir erlang-dev erlang-xmerl
 ```
 Elixir version: 1.17.3  
-Erlang version: 26
+Erlang version: 26  
+
+# Helpful reading
+https://lamport.azurewebsites.net/pubs/paxos-simple.pdf
