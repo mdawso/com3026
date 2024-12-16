@@ -6,8 +6,8 @@ sudo add-apt-repository ppa:rabbitmq/rabbitmq-erlang
 sudo apt update
 sudo apt install elixir erlang-dev erlang-xmerl
 ```
-Elixir version: 1.17.3  
-Erlang version: 26  
+Elixir  1.17.3  
+OTP 26
 
 # Helpful reading
 https://lamport.azurewebsites.net/pubs/paxos-simple.pdf
