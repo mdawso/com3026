@@ -1,9 +1,9 @@
 defmodule AccountServer do
-
+    
     def start(name, paxos_proc) do
         pid = spawn(AccountServer, :init, [name, paxos_proc])
         pid = case :global.re_register_name(name, pid) do
-            :yes -> pid
+            :yes -> pid  
             :no  -> nil
         end
         IO.puts(if pid, do: "registered #{name}", else: "failed to register #{name}")
@@ -36,7 +36,7 @@ defmodule AccountServer do
     defp wait_for_reply(r, attempt) do
         msg = receive do
             msg -> msg
-            after 1000 ->
+            after 1000 -> 
                 send(r, {:poll_for_decisions})
                 nil
         end
@@ -51,7 +51,7 @@ defmodule AccountServer do
             {:deposit_failed} -> :fail
             {:abort} -> :fail
             _ -> :timeout
-        end
+        end        
     end
 
     def withdraw(r, amount) do
@@ -77,7 +77,7 @@ defmodule AccountServer do
 
     def run(state) do
         state = receive do
-            {trans, client, _}=t when trans == :deposit or trans == :withdraw ->
+            {trans, client, _}=t when trans == :deposit or trans == :withdraw ->                
                 state = poll_for_decisions(state)
                 if Paxos.propose(state.pax_pid, state.last_instance+1, t, 1000) == {:abort} do
                     send(client, {:abort})
@@ -89,7 +89,7 @@ defmodule AccountServer do
                 state = poll_for_decisions(state)
                 send(client, {:balance, state.balance})
                 state
-
+            
             # {:abort, inst} ->
             #     {pinst, client} = state.pending
             #     if inst == pinst do
@@ -113,28 +113,28 @@ defmodule AccountServer do
         case  Paxos.get_decision(state.pax_pid, i=state.last_instance+1, 1000) do
             {:deposit, client, amount} ->
                 state = case state.pending do
-                    {^i, ^client} ->
+                    {^i, ^client} -> 
                         send(elem(state.pending, 1), {:deposit_ok})
                         %{state | pending: {0, nil}, balance: state.balance+amount}
-                    {^i, _} ->
+                    {^i, _} -> 
                         send(elem(state.pending, 1), {:deposit_failed})
                         %{state | pending: {0, nil}, balance: state.balance+amount}
-                    _ ->
+                    _ -> 
                         %{state | balance: state.balance + amount}
                 end
                 poll_for_decisions(%{state | last_instance: i})
 
             {:withdraw, client, amount} ->
                 state = case state.pending do
-                    {^i, ^client} ->
-                        if state.balance - amount < 0 do
+                    {^i, ^client} -> 
+                        if state.balance - amount < 0 do 
                             send(elem(state.pending, 1), {:insufficient_funds})
                             %{state | pending: {0, nil}}
-                        else
+                        else 
                             send(elem(state.pending, 1), {:withdraw_ok})
                             %{state | pending: {0, nil}}
                         end
-                    {^i, _} ->
+                    {^i, _} -> 
                         send(elem(state.pending, 1), {:withdraw_failed})
                         %{state | pending: {0, nil}}
                     _ -> state
@@ -143,7 +143,7 @@ defmodule AccountServer do
                 # IO.puts("\tNEW BALANCE: #{bal}")
                 poll_for_decisions(%{state | last_instance: i})
 
-            nil -> state
+            nil -> state  
         end
     end
 
