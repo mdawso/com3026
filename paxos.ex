@@ -1,5 +1,5 @@
 defmodule Paxos do
-  
+
   def start(name, participants) do
     pid = spawn(Paxos, :init, [name, participants])
     :global.re_register_name(name, pid)
@@ -10,9 +10,13 @@ defmodule Paxos do
     state = %{
       name: name,
       participants: participants,
-      leader: nil,
-      
     }
+    run(state)
+  end
+
+  def run(state) do
+    IO.puts("YOUR MUM LMAO")
+    run(state)
   end
 
 end
@@ -28,4 +32,3 @@ defmodule U do
   end
   def beb_broadcast(dest, m) do for p <- dest do unicast(p, m) end end
 end
-
