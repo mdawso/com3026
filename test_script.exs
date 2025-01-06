@@ -1,5 +1,4 @@
 # Replace with your own implementation source files
-IEx.Helpers.c "beb.ex", "."
 IEx.Helpers.c "paxos.ex", "."
 
 # Do not modify the following ##########

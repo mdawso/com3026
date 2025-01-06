@@ -10,25 +10,50 @@ defmodule Paxos do
     state = %{
       name: name,
       participants: participants,
+      
+      inst: nil,
+      prepared_procs: nil,
     }
     run(state)
   end
 
   def run(state) do
-    IO.puts("YOUR MUM LMAO")
+    state = receive do
+      {:propose, inst, value, t} -> 
+       
+        # This means we need a new consensus inst. First run prepare phase
+        state = {state | prepared_procs: [], inst: inst} # Reset the prepared procs set new instance id
+        
+        for participant <- state.participants do
+          send(participant, {:prepare, self()}) # Send a prepare request to each process
+        end
+        
+        receive do
+          {:prepared, from} -> state = %{state | prepared_procs: [from | state.prepared_procs]} # Append each process that responds to the prepared procs for this instance
+        after t -> state
+        end
+
+        # We have now collected all processes that will participate in this instance of consensus
+        # Begin round 1
+        # Next, we attempt to get all procs to accept the value that is being proposed
+
+        
+      
+      {:get_decision, from} -> send(from, {:decision, state.decision})
+      {:prepare, from} -> send(from, {:prepared, self()})
+    end
     run(state)
   end
 
-end
+  def propose(pid, inst, value, t) do
+    send(pid, {:propose, inst, value, t})
+  end
 
-# Utilities
-defmodule U do
-  def unicast(p, m) when is_pid(p), do: send(p, m)
-  def unicast(p, m) do
-    case :global.whereis_name(p) do
-      pid when is_pid(pid) -> send(pid, m)
-      :undefined -> :ok
+  def get_decision(pid, inst, t) do
+    send(pid, {:get_decision, self()})
+    receive do
+      {:decision, decision} -> decision
     end
   end
-  def beb_broadcast(dest, m) do for p <- dest do unicast(p, m) end end
+
 end
