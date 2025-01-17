@@ -9,9 +9,7 @@ IEx.Helpers.c "test_util.ex", "."
 
 host = String.trim(to_string(:os.cmd('hostname -s')))
 
-num_runs = 1
-
-# ###########
+num_runs = 3
 
 test_suite = [
     # test case, configuration, number of times to run the case, description
@@ -33,15 +31,15 @@ test_suite = [
 
 
 
-    {&PaxosTest.run_simple_many_2/3, TestUtil.get_dist_config(host, 5), num_runs, "No failures, many concurrent ballots 2, 5 nodes"},
-    {&PaxosTest.run_simple_many_2/3, TestUtil.get_local_config(5), num_runs, "No failures, many concurrent ballots 2, 5 local procs"},
+   {&PaxosTest.run_simple_many_2/3, TestUtil.get_dist_config(host, 5), num_runs, "No failures, many concurrent ballots 2, 5 nodes"},
+   {&PaxosTest.run_simple_many_2/3, TestUtil.get_local_config(5), num_runs, "No failures, many concurrent ballots 2, 5 local procs"},
 
-    {&PaxosTest.run_non_leader_crash/3, TestUtil.get_dist_config(host, 3), num_runs, "One non-leader crashes, no concurrent ballots, 3 nodes"},
-    {&PaxosTest.run_non_leader_crash/3, TestUtil.get_local_config(3), num_runs, "One non-leader crashes, no concurrent ballots, 3 local procs"},
+   {&PaxosTest.run_non_leader_crash/3, TestUtil.get_dist_config(host, 3), num_runs, "One non-leader crashes, no concurrent ballots, 3 nodes"},
+   {&PaxosTest.run_non_leader_crash/3, TestUtil.get_local_config(3), num_runs, "One non-leader crashes, no concurrent ballots, 3 local procs"},
 
 
-    {&PaxosTest.run_minority_non_leader_crash/3, TestUtil.get_dist_config(host, 5), num_runs, "Minority non-leader crashes, no concurrent ballots"},
-    {&PaxosTest.run_minority_non_leader_crash/3, TestUtil.get_local_config(5), num_runs, "Minority non-leader crashes, no concurrent ballots"},
+   {&PaxosTest.run_minority_non_leader_crash/3, TestUtil.get_dist_config(host, 5), num_runs, "Minority non-leader crashes, no concurrent ballots"},
+   {&PaxosTest.run_minority_non_leader_crash/3, TestUtil.get_local_config(5), num_runs, "Minority non-leader crashes, no concurrent ballots"},
 
 
 
@@ -51,8 +49,9 @@ test_suite = [
 
     {&PaxosTest.run_leader_crash_simple_2/3, TestUtil.get_dist_config(host, 7), num_runs, "Leader and some non-leaders crash, no concurrent ballots, 7 nodes"},
     {&PaxosTest.run_leader_crash_simple_2/3, TestUtil.get_local_config(7), num_runs, "Leader and some non-leaders crash, no concurrent ballots, 7 local procs"},
-
+    
     {&PaxosTest.run_leader_crash_complex/3, TestUtil.get_dist_config(host, 11), num_runs, "Cascading failures of leaders and non-leaders, 11 nodes"},
+    
     {&PaxosTest.run_leader_crash_complex/3, TestUtil.get_local_config(11), num_runs, "Cascading failures of leaders and non-leaders, 11 local procs"},
 
     {&PaxosTest.run_leader_crash_complex_2/3, TestUtil.get_dist_config(host, 11), num_runs, "Cascading failures of leaders and non-leaders, random delays, 7 nodes"},
