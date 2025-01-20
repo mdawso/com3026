@@ -1,6 +1,6 @@
 defmodule Paxos do
 
-	defp log(x) do if true do IO.puts(x) end end
+	defp log(x) do if false do IO.puts(x) end end
 
 	def start(name, participants) do
 		pid = spawn(Paxos, :init, [name, participants])
@@ -40,7 +40,7 @@ defmodule Paxos do
 			instances: %{},
 			parent_pid: nil,
 		}
-		_ld = LeaderDetector.start(name, participants)
+		LeaderDetector.start(name, participants)
 		run(state)
 	end
 
@@ -113,7 +113,7 @@ defmodule Paxos do
 	defp handle_leader_elect(state, p) do
 		log("Handle Leader Elect")
 		if state.name == p do
-			log("This node is the new leader")
+			log("#{state.name} is the new leader")
 			if state.proposal != nil || state.proposal_h != nil do
 				beb(state.participants, {:prepare, increment_ballot_number(state.bal, p), p, state.inst})
 				state
@@ -322,19 +322,16 @@ defmodule Paxos do
 
 	defp beb(dest, m), do: for p <- dest, do: unicast(p, m)
 
-	defp lexicographical_compare(a, b) do
-		if a == b do 0 end
-		if a>b do 1 end
-		if a<b do -1 end
+	defp compare_ballot({a1, a2}, operator, {b1, b2}) do
+		log("Comparing ballots: #{inspect({a1, a2})} with #{inspect({b1, b2})}")
+		diff = a1 - b1
+		compare_result = if diff == 0 do
+			if a2 == b2 do 0 else if a2 > b2 do 1 else -1 end end
+		else
+			diff
+		end
+		operator.(compare_result, 0)
 	end
-
-	defp compare_ballot(left, operator, right) do
-    	operator.(ballot_compare(left, right),0)
-  	end
-
-  	defp ballot_compare(a, b) do
-    	diff = elem(a, 0) - elem(b, 0)
-    	if diff == 0, do: lexicographical_compare(elem(a, 1), elem(b, 1)), else: diff end
 
 	defp increment_ballot_number(ballot_tuple, leader) do
   		{elem(ballot_tuple,0)+1, leader}
@@ -419,5 +416,4 @@ defmodule LeaderDetector do
 				:error
 		end
 	end
-	
 end

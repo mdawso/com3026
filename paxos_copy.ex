@@ -5,7 +5,7 @@ defmodule Paxos do
 
   # change to true to view logs
   def log(msg) do
-    if false do
+    if true do
       IO.puts(msg)
     end
   end
