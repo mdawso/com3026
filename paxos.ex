@@ -40,7 +40,7 @@ defmodule Paxos do
 			instances: %{},
 			parent_pid: nil,
 		}
-		LeaderDetector.start(name, participants)
+		LeaderElector.start(name, participants)
 		run(state)
 	end
 
@@ -338,12 +338,12 @@ defmodule Paxos do
   	end
 end
 
-defmodule LeaderDetector do
+defmodule LeaderElector do
 
 	def start(name, participants) do
-		cname = name_concat(name, "leader_election");
-		participants = Enum.map(participants, fn x -> name_concat(x, "leader_election") end);
-		pid = spawn(LeaderDetector, :init, [cname, participants, name]);
+		cname = name_concat(name, "_le_");
+		participants = Enum.map(participants, fn x -> name_concat(x, "_le_") end);
+		pid = spawn(LeaderElector, :init, [cname, participants, name]);
 		register_name(cname, pid);
 	end
 
@@ -360,35 +360,41 @@ defmodule LeaderDetector do
 		run(state)
 	end
 
+	defp handle_heartbeat_request(state, pid) do
+		send(pid, {:heartbeat_reply, state.parent_name})
+		state
+	end
+
+	defp handle_heartbeat_reply(state, name) do
+		%{state | alive: MapSet.put(state.alive, name)}
+	end
+
+	defp handle_timeout(state) do
+		beb(state.participants, {:heartbeat_request, self()})
+		Process.send_after(self(), {:timeout}, state.timeout)
+		state = elect_leader(state)
+		%{state | alive: %MapSet{}}
+	end
+
 	def run(state) do
 		state = receive do
-			{:timeout} ->
-				beb(state.participants, {:heartbeat_request, self()})
-				Process.send_after(self(), {:timeout}, state.timeout)
-				state = elect_leader(state)
-				%{state | alive: %MapSet{}}
 			{:heartbeat_request, pid} ->
-				send(pid, {:heartbeat_reply, state.parent_name})
-				state
+				handle_heartbeat_request(state, pid)
 			{:heartbeat_reply, name} ->
-				%{state | alive: MapSet.put(state.alive, name)}
-
+				handle_heartbeat_reply(state, name)
+			{:timeout} ->
+				handle_timeout(state)
 		end
 		run(state)
 	end
 
 	def elect_leader(state) do
-		sorted_processes = Enum.sort(state.alive)
-		if(MapSet.size(state.alive) > 0) do
-			first_process = Enum.at(sorted_processes, 0)
-			if(first_process != state.leader) do
-				unicast(state.parent_name, {:leader_elect, first_process})
-				%{state | leader: first_process}
-			else
-				state
-			end
-		else
-			state
+		case Enum.sort(state.alive) do
+			[] -> state
+			[leader | _] when leader != state.leader ->
+				unicast(state.parent_name, {:leader_elect, leader})
+				%{state | leader: leader}
+			_ -> state
 		end
 	end
 

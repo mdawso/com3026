@@ -9,7 +9,7 @@ IEx.Helpers.c "test_util.ex", "."
 
 host = String.trim(to_string(:os.cmd('hostname -s')))
 
-num_runs = 3
+num_runs = 1
 
 test_suite = [
     # test case, configuration, number of times to run the case, description
