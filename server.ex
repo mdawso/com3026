@@ -2,7 +2,7 @@ defmodule Server do
 
 	defp log(x) do if false do IO.puts(x) end end
 	
-	def start(name, paxos_proc, num_of_seats) do
+	def start(name, paxos_proc, num_of_seats) when is_integer(num_of_seats) and num_of_seats > 0 do
 		pid = spawn(Server, :init, [name, paxos_proc, num_of_seats])
 		pid = case :global.re_register_name(name, pid) do
 			:yes -> pid  
@@ -10,6 +10,10 @@ defmodule Server do
 		end
 		log("Server #{name} started with PID #{inspect(pid)}")
 		pid
+	end
+
+	def start(_, _, num_of_seats) when not (is_integer(num_of_seats) and num_of_seats > 0) do
+		{:error, :invalid_number_of_seats}
 	end
 
 	def init(name, paxos_proc, num_of_seats) do
@@ -43,7 +47,7 @@ defmodule Server do
 		if msg, do: msg, else: wait_for_reply(r, attempt-1)
 	end
 
-	def book_seat(server_name, seat_number) do
+	def book_seat(server_name, seat_number) when is_integer(seat_number) and seat_number > 0 do
 		case :global.whereis_name(server_name) do
 			pid when is_pid(pid) ->
 				send(pid, {:book_seat, seat_number, self()})
@@ -56,6 +60,10 @@ defmodule Server do
 				end
 			:undefined -> {:error, :server_not_found}
 		end
+	end
+
+	def book_seat(_, seat_number) when not (is_integer(seat_number) and seat_number > 0) do
+		{:error, :invalid_seat_number}
 	end
 
 	def run(state) do
